@@ -1,0 +1,75 @@
+{
+  "scripts": {
+    "test": "cross-env NODE_ENV=test jest --setupTestFrameworkScriptFile=./jest-setup.js \"^((?!(integration)).)*$\"",
+    "posttest": "npm run lint",
+    "test:integration": "cross-env NODE_ENV=test jest --runInBand ./src/test/integration",
+    "lint": "tslint --project .",
+    "package:prod": "serverless package -v --stage=production",
+    "deploy:prod": "serverless deploy -v --stage=production",
+    "localstack:start": "localstack start",
+    "localstack:populate": "bash ./src/test/integration/localstack-init.sh",
+    "serverless:offline": "sls offline start --stage=development --port 3010 --noTimeout"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.15",
+    "@types/got": "^9.2.0",
+    "@types/graphql": "^14.0.3",
+    "@types/jest": "^23.3.9",
+    "@types/lodash": "^4.14.118",
+    "@types/loglevel": "^1.5.3",
+    "@types/node": "^10.12.9",
+    "@types/pg": "^7.4.11",
+    "@types/twit": "^2.2.20",
+    "@types/webpack": "^4.4.19",
+    "@types/yup": "^0.26.2",
+    "cross-env": "^5.2.0",
+    "delay": "^4.1.0",
+    "flush-s3-bucket": "^1.0.2",
+    "graphql-import-loader": "^0.2.1",
+    "jest": "^23.6.0",
+    "npm-check": "^5.9.0",
+    "serverless": "^1.33.2",
+    "serverless-offline": "^3.31.3",
+    "serverless-offline-sqs": "^1.5.0",
+    "serverless-plugin-warmup": "^4.0.0-rc.1",
+    "serverless-webpack": "^5.2.0",
+    "source-map-loader": "^0.2.4",
+    "ts-jest": "^23.10.4",
+    "ts-loader": "^5.3.0",
+    "tslint": "^5.11.0",
+    "tslint-config-airbnb": "^5.11.1",
+    "tslint-loader": "^3.6.0",
+    "tsutils": "^3.5.0",
+    "typescript": "^3.1.6",
+    "webpack": "^4.26.0",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "dependencies": {
+    "@sindresorhus/fnv1a": "^1.0.0",
+    "apollo-server-lambda": "^2.1.0",
+    "aws-xray-sdk": "^2.1.0",
+    "dynamodb-doc-client-wrapper": "^2.0.1",
+    "got": "^9.3.2",
+    "graphql": "^14.0.2",
+    "graphql-fields-list": "^1.1.1",
+    "lodash": "^4.17.10",
+    "loglevel": "^1.6.1",
+    "npm-registry-fetch": "^3.8.0",
+    "twit": "^2.2.11",
+    "yup": "^0.26.6"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  }
+}

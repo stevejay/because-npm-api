@@ -1,0 +1,81 @@
+type Node {
+  id: String!
+  description: String
+  link: String!
+  edgeCount: Int!
+  score: Float!
+}
+
+type Edge {
+  id: String!
+  tailNodeId: String!
+  headNodeId: String!
+  score: Float!
+}
+
+type EdgeComment {
+  id: String!
+  edgeId: String!
+  comment: String!
+  sourceLink: String!
+  sourceUserId: String!
+  timestampMs: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+}
+
+type NodeResult {
+  node: Node
+}
+
+type NodeAutocompleteResult {
+  nodes: [Node!]!
+}
+
+type SearchNode {
+  node: Node!
+  cursor: String!
+}
+
+type NodeSearchConnection {
+  edges: [SearchNode!]!
+  pageInfo: PageInfo!
+}
+
+type SearchEdge {
+  node: Edge!
+  cursor: String!
+}
+
+type EdgeSearchConnection {
+  edges: [SearchEdge!]!
+  pageInfo: PageInfo!
+}
+
+type SearchEdgeComment {
+  node: EdgeComment!
+  cursor: String!
+}
+
+type EdgeCommentSearchConnection {
+  edges: [SearchEdgeComment!]!
+  pageInfo: PageInfo!
+}
+
+type Query {
+  node(id: String!): NodeResult
+  autocompleteNodeSearch(term: String!, first: Int!): NodeAutocompleteResult
+  nodeSearch(term: String!, first: Int, after: String): NodeSearchConnection
+  edgeSearch(
+    tailNodeId: String!
+    first: Int
+    after: String
+  ): EdgeSearchConnection
+  edgeCommentSearch(
+    edgeId: String!
+    first: Int
+    after: String
+  ): EdgeCommentSearchConnection
+}

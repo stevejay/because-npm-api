@@ -1,0 +1,271 @@
+service: because-npm-backend
+
+frameworkVersion: ">=1.2.0 <2.0.0"
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: eu-west-1
+  tracing: true
+  environment: ${file(env.yml):${self:custom.stage}}
+  iamManagedPolicies:
+    - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action: "cloudwatch:PutMetricData"
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+        - s3:PutObject
+        - s3:GetObject
+      Resource: arn:aws:s3:::${self:custom.failedTweetsBucket}/*
+    - Effect: Allow
+      Action:
+        - "lambda:InvokeFunction"
+      Resource:
+        - Fn::Join:
+            - ":"
+            - - arn:aws:lambda
+              - Ref: AWS::Region
+              - Ref: AWS::AccountId
+              - function:${self:service}-${opt:stage}-*
+    - Effect: Allow
+      Action:
+        - "sqs:SendMessage"
+        - "sqs:ReceiveMessage"
+        - "sqs:GetQueueUrl"
+      Resource:
+        - Fn::Join:
+            - ":"
+            - - arn:aws:sqs
+              - Ref: AWS::Region
+              - Ref: AWS::AccountId
+              - ${self:custom.tweetCreatedQueueName}
+    - Effect: Allow
+      Action:
+        - "sqs:SendMessage"
+        - "sqs:ReceiveMessage"
+        - "sqs:GetQueueUrl"
+      Resource:
+        - Fn::Join:
+            - ":"
+            - - arn:aws:sqs
+              - Ref: AWS::Region
+              - Ref: AWS::AccountId
+              - ${self:custom.tweetCreatedDLQueueName}
+    - Effect: "Allow"
+      Action: "dynamodb:*"
+      Resource:
+        - Fn::Join:
+            - ""
+            - - "arn:aws:dynamodb:"
+              - Ref: "AWS::Region"
+              - ":"
+              - Ref: "AWS::AccountId"
+              - ":table/"
+              - Ref: "TweetDynamoTable"
+    - Effect: "Allow"
+      Action: "dynamodb:*"
+      Resource:
+        - Fn::Join:
+            - ""
+            - - "arn:aws:dynamodb:"
+              - Ref: "AWS::Region"
+              - ":"
+              - Ref: "AWS::AccountId"
+              - ":table/"
+              - Ref: "TweetDynamoTable"
+              - "/index/"
+              - ${self:custom.tweetByTimestampIndexName}
+
+plugins:
+  - serverless-plugin-warmup
+  - serverless-webpack
+  - serverless-offline-sqs
+  - serverless-offline
+
+custom:
+  stage: "${opt:stage}"
+  region: "${opt:region, self:provider.region}"
+  failedTweetsBucket: "because-npm-failed-tweets-${self:custom.stage}"
+  tweetCreatedQueueName: "because-npm-tweet-created-${self:custom.stage}"
+  tweetCreatedDLQueueName: "because-npm-tweet-created-${self:custom.stage}-dl"
+  tweetTableName: because-npm-tweet-${self:custom.stage}
+  tweetByTimestampIndexName: because-npm-tweet-by-timestamp-${self:custom.stage}
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules:
+      forceExclude:
+        - aws-sdk
+  serverless-offline-sqs:
+    apiVersion: "2012-11-05"
+    endpoint: http://localhost:4576/
+    region: development/eu-west-1
+    accessKeyId: root
+    secretAccessKey: root
+
+packager: "npm"
+
+functions:
+  twitterWebhook:
+    handler: src/lambda/twitter-webhook.handler
+    memorySize: 512
+    timeout: 30
+    warmup: production
+    environment:
+      TWEET_CREATED_QUEUE_NAME: ${self:custom.tweetCreatedQueueName}
+      FAILED_TWEETS_BUCKET: ${self:custom.failedTweetsBucket}
+      SERVERLESS_TWEET_TABLE_NAME: ${self:custom.tweetTableName}
+      SERVERLESS_TWEET_BY_TIMESTAMP_INDEX_NAME: ${self:custom.tweetByTimestampIndexName}
+    events:
+      - http:
+          path: twitter/webhook
+          method: get
+      - http:
+          path: twitter/webhook
+          method: post
+  processTweetCreatedMessages:
+    handler: src/lambda/process-tweet-created-messages.handler
+    memorySize: 1024
+    timeout: 300
+    reservedConcurrency: 2 # Max simultaneous messages parsed
+    environment:
+      TWEET_CREATED_QUEUE_NAME: ${self:custom.tweetCreatedQueueName}
+      FAILED_TWEETS_BUCKET: ${self:custom.failedTweetsBucket}
+      SERVERLESS_TWEET_TABLE_NAME: ${self:custom.tweetTableName}
+      SERVERLESS_TWEET_BY_TIMESTAMP_INDEX_NAME: ${self:custom.tweetByTimestampIndexName}
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - TweetCreatedQueue
+              - Arn
+          batchSize: 10
+  searchGraphql:
+    handler: src/lambda/search-graphql.handler
+    memorySize: 1024
+    timeout: 30
+    reservedConcurrency: 10
+    events:
+      - http:
+          path: search/graphql
+          method: get
+          cors:
+            origin: "*"
+            allowCredentials: true
+            cacheControl: "max-age=600, s-maxage=600"
+            maxAge: 600
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Cache-Control
+      - http:
+          path: search/graphql
+          method: post
+          cors:
+            origin: "*"
+            allowCredentials: true
+            cacheControl: "max-age=600, s-maxage=600"
+            maxAge: 600
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Cache-Control
+  ingestTweetFromTwitter:
+    handler: src/lambda/ingest-tweet-from-twitter.handler
+    memorySize: 512
+    timeout: 30
+    reservedConcurrency: 1
+    environment:
+      TWEET_CREATED_QUEUE_NAME: ${self:custom.tweetCreatedQueueName}
+      FAILED_TWEETS_BUCKET: ${self:custom.failedTweetsBucket}
+      SERVERLESS_TWEET_TABLE_NAME: ${self:custom.tweetTableName}
+      SERVERLESS_TWEET_BY_TIMESTAMP_INDEX_NAME: ${self:custom.tweetByTimestampIndexName}
+    events:
+      - http:
+          path: tweet/{id}
+          method: put
+          request:
+            parameters:
+              paths:
+                id: true
+          cors: true
+  reindexTweet:
+    handler: src/lambda/reindex-tweet.handler
+    memorySize: 512
+    timeout: 30
+    reservedConcurrency: 1
+    environment:
+      TWEET_CREATED_QUEUE_NAME: ${self:custom.tweetCreatedQueueName}
+      FAILED_TWEETS_BUCKET: ${self:custom.failedTweetsBucket}
+      SERVERLESS_TWEET_TABLE_NAME: ${self:custom.tweetTableName}
+      SERVERLESS_TWEET_BY_TIMESTAMP_INDEX_NAME: ${self:custom.tweetByTimestampIndexName}
+    events:
+      - http:
+          path: tweet/{id}/reindex
+          method: post
+          request:
+            parameters:
+              paths:
+                id: true
+          cors: true
+
+resources:
+  Resources:
+    S3BucketFailedTweets:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.failedTweetsBucket}
+    TweetCreatedQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.tweetCreatedQueueName}
+        VisibilityTimeout: 1500
+        RedrivePolicy:
+          deadLetterTargetArn:
+            Fn::GetAtt:
+              - TweetCreatedDLQueue
+              - Arn
+          maxReceiveCount: 5
+    TweetCreatedDLQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.tweetCreatedDLQueueName}
+    TweetDynamoTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:custom.tweetTableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: timestampMs
+            AttributeType: N
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:custom.tweetByTimestampIndexName}
+            KeySchema:
+              - AttributeName: timestampMs
+                KeyType: HASH
+            Projection:
+              ProjectionType: "KEYS_ONLY"
+            ProvisionedThroughput:
+              ReadCapacityUnits: 2
+              WriteCapacityUnits: 2

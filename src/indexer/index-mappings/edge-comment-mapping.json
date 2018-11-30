@@ -1,0 +1,33 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "edgeId": {
+          "type": "keyword",
+          "index": true
+        },
+        "comment": {
+          "type": "text",
+          "index": false
+        },
+        "sourceLink": {
+          "type": "keyword",
+          "index": false
+        },
+        "sourceUserId": {
+          "type": "keyword",
+          "index": false
+        },
+        "timestampMs": {
+          "type": "date",
+          "format": "epoch_millis",
+          "index": false
+        }
+      }
+    }
+  }
+}

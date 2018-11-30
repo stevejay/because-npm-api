@@ -1,0 +1,15 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+# build directories
+.webpack
+
+# secrets
+env.yml
+
+# logs
+**/*.log

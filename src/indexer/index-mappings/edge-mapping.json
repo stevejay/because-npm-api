@@ -1,0 +1,24 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "tailNodeId": {
+          "type": "keyword",
+          "index": true
+        },
+        "headNodeId": {
+          "type": "keyword",
+          "index": true
+        },
+        "score": {
+          "type": "double",
+          "index": false
+        }
+      }
+    }
+  }
+}

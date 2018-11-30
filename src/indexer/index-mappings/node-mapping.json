@@ -1,0 +1,32 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "idMatchQueryText": {
+          "type": "text",
+          "index": true,
+          "analyzer": "standard"
+        },
+        "suggest": {
+          "type": "completion"
+        },
+        "description": {
+          "type": "text",
+          "index": false
+        },
+        "link": {
+          "type": "keyword",
+          "index": false
+        },
+        "score": {
+          "type": "double",
+          "index": false
+        }
+      }
+    }
+  }
+}
