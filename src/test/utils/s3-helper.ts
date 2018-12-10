@@ -65,7 +65,7 @@ export async function eventuallyGetObject(
 
 export async function deleteAllFilesInBucket(bucketName: string) {
   await new Promise((resolve, reject) => {
-    flushS3Bucket(s3, bucketName, err => {
+    flushS3Bucket(s3, bucketName, (err: any) => {
       if (err) {
         reject(err);
       } else {

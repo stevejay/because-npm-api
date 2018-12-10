@@ -20,12 +20,24 @@ export function createRequest(
     search_after: cursor || undefined,
     size,
     query: {
-      match: {
-        idMatchQueryText: {
-          query: cleanedTerm,
-          operator: "or",
-          fuzziness: "AUTO"
-        }
+      bool: {
+        should: [
+          {
+            match: {
+              idMatchQueryText: {
+                query: cleanedTerm,
+                operator: "or",
+                fuzziness: "AUTO"
+              }
+            }
+          },
+          {
+            prefix: {
+              idMatchQueryText: { value: cleanedTerm, boost: 0.5 }
+            }
+          }
+        ],
+        minimum_should_match: 1
       }
     },
     sort: [{ _score: "desc" }, { score: "desc" }, { _id: "asc" }]

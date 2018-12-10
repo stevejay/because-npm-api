@@ -19,22 +19,20 @@ export function mapGetNodeRequest(
   args: any,
   info: GraphQLResolveInfo
 ): GetNodeRequest {
-  const fields = fieldsList(info, { path: "node" });
+  const fields = fieldsList(info, { path: "" });
   const includeEdgeCounts = _.includes(fields, "edgeCount");
   return { id: args.id, includeEdgeCounts };
 }
 
 export function mapGetNodeResult(result: GetNodeResult): any {
   return {
-    node: {
-      id: result.node.id,
-      link: result.node.link,
-      description: result.node.description,
-      edgeCount: _.isNil(result.node.edgeCount)
-        ? undefined
-        : result.node.edgeCount,
-      score: result.node.score
-    }
+    id: result.node.id,
+    link: result.node.link,
+    description: result.node.description,
+    edgeCount: _.isNil(result.node.edgeCount)
+      ? undefined
+      : result.node.edgeCount,
+    score: result.node.score
   };
 }
 

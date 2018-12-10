@@ -10,12 +10,24 @@ describe("createRequest", () => {
         search_after: [1, 2, 3],
         size: 10,
         query: {
-          match: {
-            idMatchQueryText: {
-              query: "foobar",
-              operator: "or",
-              fuzziness: "AUTO"
-            }
+          bool: {
+            should: [
+              {
+                match: {
+                  idMatchQueryText: {
+                    query: "foobar",
+                    operator: "or",
+                    fuzziness: "AUTO"
+                  }
+                }
+              },
+              {
+                prefix: {
+                  idMatchQueryText: { value: "foobar", boost: 0.5 }
+                }
+              }
+            ],
+            minimum_should_match: 1
           }
         },
         sort: [{ _score: "desc" }, { score: "desc" }, { _id: "asc" }]

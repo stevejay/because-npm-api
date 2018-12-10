@@ -22,12 +22,10 @@ describe("mapGetNodeResult", () => {
     };
     const actual = mapper.mapGetNodeResult(result);
     expect(actual).toEqual({
-      node: {
-        id: "react",
-        link: "http://foo.com",
-        description: "foo",
-        score: 1
-      }
+      id: "react",
+      link: "http://foo.com",
+      description: "foo",
+      score: 1
     });
   });
 });

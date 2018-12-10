@@ -34,15 +34,9 @@ Anytime that you restart localstack, you need to first run the `npm run localsta
 
 ## TODO
 
-- Include popularity measure in node object.
 - Delete tweet support
   - use script to remove id from edge edgeCommentIds array, if supported by search host
   - remove edgeComment
-
-### Search Changes
-
-- Searching for 'form' does not return 'formik', since the fuzziness distance is slightly more
-  than that used for the search
 
 ### GraphQL changes
 
