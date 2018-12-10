@@ -43,3 +43,7 @@ Anytime that you restart localstack, you need to first run the `npm run localsta
 
 - Searching for 'form' does not return 'formik', since the fuzziness distance is slightly more
   than that used for the search
+
+### GraphQL changes
+
+- All data support

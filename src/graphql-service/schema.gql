@@ -26,10 +26,6 @@ type PageInfo {
   hasNextPage: Boolean!
 }
 
-type NodeResult {
-  node: Node
-}
-
 type NodeAutocompleteResult {
   nodes: [Node!]!
 }
@@ -65,7 +61,7 @@ type EdgeCommentSearchConnection {
 }
 
 type Query {
-  node(id: String!): NodeResult
+  node(id: String!): Node
   autocompleteNodeSearch(term: String!, first: Int!): NodeAutocompleteResult
   nodeSearch(term: String!, first: Int, after: String): NodeSearchConnection
   edgeSearch(
