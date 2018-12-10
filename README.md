@@ -2,11 +2,11 @@
 
 ## Similar Projects
 
-- slant, in a way
-- npmcompare.com
-- search npm: https://api-docs.npms.io/
-- https://libraries.io/npm/serverless-offline-sqs/1.5.0
-  - has subscribe to package option!
+- [Slant](https://www.slant.co/), in some ways
+- [NPM Compare](npmcompare.com)
+- [Search NPM](https://api-docs.npms.io/)
+- [Libraries.io](https://libraries.io/npm)
+  - has a 'subscribe to package' option
 
 ## Local Development
 
@@ -34,22 +34,12 @@ Anytime that you restart localstack, you need to first run the `npm run localsta
 
 ## TODO
 
-- include popularity measure in node object.
+- Include popularity measure in node object.
+- Delete tweet support
+  - use script to remove id from edge edgeCommentIds array, if supported by search host
+  - remove edgeComment
 
-// edge comment ids
+### Search Changes
 
-tweet is immutable
-metadata on tweet is not (deleted, not deleted)
-
-delete tweet
-
-- rewrite s3 object with status metadatum set to deleted
-- use script to remove id from edge edgeCommentIds array
-- remove edgeComment
-
-### Autocomplete Changes
-
-- Favour an exact match? e.g., `react` package is not top hit when term is 'react'
-  // TODO check if react-router is found by terms 'react router' and 'reactrouter'
-
-How to allow the term 'reactrouter' to find 'react-router'??
+- Searching for 'form' does not return 'formik', since the fuzziness distance is slightly more
+  than that used for the search
